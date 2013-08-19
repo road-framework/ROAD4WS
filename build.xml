@@ -1,0 +1,152 @@
+<!--
+  ~ Licensed to the Apache Software Foundation (ASF) under one
+  ~ or more contributor license agreements. See the NOTICE file
+  ~ distributed with this work for additional information
+  ~ regarding copyright ownership. The ASF licenses this file
+  ~ to you under the Apache License, Version 2.0 (the
+  ~ "License"); you may not use this file except in compliance
+  ~ with the License. You may obtain a copy of the License at
+  ~
+  ~ http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing,
+  ~ software distributed under the License is distributed on an
+  ~ "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  ~ KIND, either express or implied. See the License for the
+  ~ specific language governing permissions and limitations
+  ~ under the License.
+  -->
+
+<project name="roadmodule" default="install">
+	<property environment="env"/>
+	<property name="mainDir" value="./" />
+	<property name="classes.dir" value="build/classes/" />
+	<property name="version" value="road4ws_2_0" />
+	<property name="dist.dir" value="${version}" />
+	<property name="axis2.home" value="${env.AXIS2_HOME}" />
+	<property name="tomcat.home" value="${env.CATALINA_HOME}" />
+	<property name="roadfactoryjar" value="ROADfactory.jar" />
+	
+	  <target name="checkProperties">
+	  	<fail unless="env.CATALINA_HOME">CATALINA_HOME must be set to the root directory of Tomcat installation</fail>
+	    <fail unless="env.AXIS2_HOME">AXIS2_HOME must be set to the Axis2 installation</fail>
+	  </target>
+ 
+	<path id="lib.classpath">
+		<fileset dir="lib" includes="*.jar" />
+		<fileset dir="${axis2.home}/lib" includes="*.jar" />
+		<pathelement location="build/road4ws.jar" />
+	</path>
+	<mkdir dir="${basedir}/build/classes" />
+
+	<target name="run.client.all" depends="generate.module">
+	</target>
+
+	<target name="compile">
+		<mkdir dir="${classes.dir}" />
+		<javac srcdir="src" destdir="${classes.dir}" debug="true">
+			<classpath refid="lib.classpath" />
+		</javac>
+
+		<jar destfile="build/road4ws.jar">
+			<fileset dir="${classes.dir}">
+				<include name="au/swin/ict/research/cs3/road/road4ws/**" />
+			</fileset>
+		</jar>
+	</target>
+
+	<target name="generate.module" depends="clean, compile">
+		<!--Cant use the extension mar :(-->
+		<jar destfile="build/roadmodule.rmar">
+			<fileset dir="src/au/swin/ict/research/cs3/road/road4ws/roadmodule/">
+				<include name="META-INF/**" />
+			</fileset>
+			<fileset dir="${classes.dir}">
+				<include name="au/swin/ict/research/cs3/road/road4ws/roadmodule/**/*.class" />
+			</fileset>
+		</jar>
+	</target>
+ 			
+	<target name="deploy_module" depends="generate.module">		
+		<copy file="build/roadmodule.rmar" tofile="${axis2.home}/modules/roadmodule.mar" overwrite="true" verbose="true" />
+		<copy file="build/road4ws.jar" tofile="${axis2.home}/lib/road4ws.jar" overwrite="true" verbose="true" />	
+		<mkdir dir="${axis2.home}/road_composites" />
+	</target>
+	
+	 
+	
+	<target name="deploy_roadfactory">		
+		<copy file="lib/${roadfactoryjar}" tofile="${axis2.home}/lib/${roadfactoryjar}" overwrite="true"  verbose="true"/>			
+	</target>
+	
+	<target name="deploy_all_libs">		
+		  <copy todir="${axis2.home}/lib/" overwrite="true" verbose="true">
+		    <fileset dir="lib/" includes="*.jar" />
+		  </copy>
+	</target>
+	<target name="deploy_limited_libs">		
+		<copy file="lib/mvel2.jar" todir="${axis2.home}/lib/" verbose="true"/>
+		<copy file="lib/antlr-runtime.jar" todir="${axis2.home}/lib/" overwrite="true"  verbose="true"/>
+		<copy todir="${axis2.home}/lib/" overwrite="true" verbose="true">
+		    <fileset dir="lib/" includes="*drools*.jar" />
+		</copy>
+		<copy file="lib/javassist.jar" todir="${axis2.home}/lib/" overwrite="true"  verbose="true"/>
+		 
+	</target>
+	
+	<!--deploy_libs,-->
+	<target name="install" depends="checkProperties, clean_repo, deploy_limited_libs, deploy_roadfactory, deploy_module"/>
+		 
+	<target name="zip_src" depends="distributable">
+		<!--Copy src files-->
+		<copy todir="${dist.dir}/src/" overwrite="true" verbose="false">
+			<fileset dir="src/" includes="au/**"  /> 		
+		</copy>			
+		 
+ 
+		 
+		<zip destfile="${dist.dir}_src.zip" basedir="${dist.dir}"/>
+	</target>
+	
+	<target name="distributable" depends="clean, generate.module">
+		<delete dir="${dist.dir}" />		
+		<mkdir dir="${dist.dir}"  />		
+		<mkdir dir="${dist.dir}/build"  />
+		<mkdir dir="${dist.dir}/lib"  />
+		<mkdir dir="${dist.dir}/sample"  />
+		<mkdir dir="${dist.dir}/tools"  />
+		<copy file="build.xml" tofile="${dist.dir}/build.xml" verbose="true"/>
+		<copy file="install.bat" tofile="${dist.dir}/install.bat" verbose="true"/>
+		<copy file="install.sh" tofile="${dist.dir}/install.sh" verbose="true"/>
+		<copy file="README.txt" tofile="${dist.dir}/README.txt" verbose="true"/>
+		<copy file="RELEASE-NOTE.txt" tofile="${dist.dir}/RELEASE-NOTE.txt" verbose="true"/>
+		<copy file="lib/${roadfactoryjar}" tofile="${dist.dir}/lib/${roadfactoryjar}" verbose="true"/>
+		<copy file="lib/javassist.jar" todir="${dist.dir}/lib/" overwrite="true"  verbose="true"/>
+		<!--copy file="lib/jcb_0_90.jar" todir="${dist.dir}/lib/" overwrite="true"  verbose="true"/--> <!-- Because now Java Class Builder is part of ROADfactory-->
+		<copy file="build/road4ws.jar" tofile="${dist.dir}/build/road4ws.jar" verbose="true"/>
+		<copy file="build/roadmodule.rmar" tofile="${dist.dir}/build/roadmodule.rmar" verbose="true"/>
+		<copy file="lib/antlr-runtime.jar" todir="${dist.dir}/lib/"   verbose="true"/>
+		<copy file="lib/mvel2.jar" todir="${dist.dir}/lib/"   verbose="true"/>
+		<copy todir="${dist.dir}/lib/" overwrite="true" verbose="true">
+		    <fileset dir="lib/" includes="*drools*.jar" />
+		</copy>
+ 
+		<copy todir="${dist.dir}/tools/tcpmon" overwrite="true" verbose="true">
+		    <fileset dir="tools/tcpmon/" includes="*/**" />
+		</copy>
+		<zip destfile="${version}.zip" basedir="${dist.dir}"/>
+	</target>
+	  
+			
+	<target name="clean">
+		<delete dir="build" />		
+	</target>
+	
+	<target name="clean_repo">
+		<delete dir="${axis2.home}/road_composites/"  verbose="true"/>
+		<delete dir="${axis2.home}/data"  verbose="true"/>
+		<delete file="${axis2.home}/modules/roadmodule.mar" verbose="true"/>
+		<delete file="${axis2.home}/lib/road4ws.jar" verbose="true"/>
+		<delete file="${axis2.home}/lib/${roadfactoryjar}" verbose="true"/>
+	</target>
+</project>

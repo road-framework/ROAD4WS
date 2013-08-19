@@ -1,0 +1,19 @@
+====================================
+       ROAD4WS 2.0 Release Note
+====================================
+
+This is the ROAD4WS 2.0 release.
+The prime objective of ROAD4WS is to realize the Role Oriented Adaptive Design architecture (ROAD) using web services. 
+ROAD4WS will serve as the proof of concept project for ROAD
+features in web services environment.
+-Dynamic deployment in Apache Axis2 web services engine
+-Dynamic composite deployment
+-Dynamic abstract web service generation
+-Pull message support
+-Push message support  
+-Organizer interface 
+-Support for Axis2 1.6+ [NEW]
+-Support for context awareness in ROADfactory [NEW]
+-Support for message transformations [NEW]
+
+Any issues? : Malinda Kapuruge (mkapuruge at swin dot edu dot au)
