@@ -44,3 +44,7 @@ Note: You do not need to restart the server to deploy composites
 Contact
 --------------------------------------------------------
  * Malinda Kapuruge (mkapuruge at swin dot edu dot au)
+ 
+Acknowledgement
+--------------------------------------------------------
+This project has been researched & developed by Swinburne University partly with the support of Smart Services CRC. To find out more about Smart Services please visit www.smartservicescrc.com.au.
